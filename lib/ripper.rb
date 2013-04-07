@@ -18,6 +18,9 @@ class Ripper
       div.page.image img {
         max-height: 100%;
       }
+      div.page.image .caption {
+        /* Do whatever */
+      }
       div.page.title {
         font-size: 24px;
       }
@@ -38,7 +41,7 @@ class Ripper
           add_slide(title, class: "title")
         end
         image_url = image["src"]
-        add_slide("<img src='#{image_url}' />", class: "image")
+        add_slide("<img src='#{image_url}' /><div class='caption'>#{captions[index]}</div>", class: "image")
       end
     end
   end
