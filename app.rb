@@ -3,11 +3,14 @@ require 'bundler/setup'
 require 'sinatra'
 require 'nokogiri'
 require 'httpclient'
-require 'json'
+require 'yajl'
+require 'uri'
 require 'open-uri'
 
+require './lib/ripper'
+
 get "/" do
-  slideshows = JSON.parse(open("http://www.funnyordie.com/json/media/slideshows").read)
+  slideshows = Yajl::Parser.parse(open("http://www.funnyordie.com/json/media/slideshows").read)
 
   html = <<-HTML
   <body style="text-align:center">
@@ -20,8 +23,8 @@ get "/" do
   slideshows.each do |slideshow|
     html += <<-HTML
       <div style="text-align: center; margin-bottom: 20px">
-        <a href="#{slideshow["web_url"]}">
-          <img src="#{slideshow["thumb_url"]}" style="width: 150px; display: block; margin: 0 auto"/>
+        <a href="/#{URI.escape(slideshow["web_url"])}">
+          <img src="#{slideshow["thumb_url"].gsub(/fullsize/,"rectangle_large")}" style="width: 150px; display: block; margin: 0 auto"/>
           #{slideshow["title"]}
         </a>
       </div>
@@ -30,4 +33,11 @@ get "/" do
   html += <<-HTML
   </div>
   HTML
+end
+
+get "/*" do
+  # sinatra inexplicably stripping the first slash in http://
+  uri = params[:splat].first.gsub(/^http.*www/, "http://www")
+  ripper = Ripper.new(URI.unescape(uri))
+  ripper.html
 end
